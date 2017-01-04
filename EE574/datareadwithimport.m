@@ -24,7 +24,8 @@ C = size(B);
 D = C(1,1);
 B(D,:)=[];
 branchdata = B;
-
+sizebranch = size(branchdata);
+branchnumber = sizebranch(1,1);
 % All data is read. Namely, busdata, measurementdata and branchdata. 
 
 % Now, the taken measurement numbers should be read.
@@ -45,4 +46,40 @@ measurementdata(n_v+2*n_pi+n_pf+1,:) = []; % Disregard this line. Reactive power
 n_c = measurementdata(n_v+2*n_pi+2*n_pf+1,1);
 measurementdata(n_v+2*n_pi+2*n_pf+1,:) = [];
 measurementdata(n_v+2*n_pi+2*n_pf+n_c+1,:) = [];
+
+% Measurement number is found as 
+sizeofmeasurement = size(measurementdata);
+measurementnumber = sizeofmeasurement(1,1);
+
+tapnumber = 0;
+for count = 1:branchnumber
+  if branchdata(count,15) ~=0
+      tapnumber = tapnumber +1;
+  end 
+end 
+
+
+% Initiate the state vector whose size is (2*busnumber-1+tapnumber)X1 
+
+x = zeros(2*busnumber-1+tapnumber,1);
+for count = 1:busnumber
+    x(count,1) = 1;
+end 
+for count = 2*busnumber:2*busnumber+tapnumber-1
+    x(count,1) = 1;
+end
+    
+% Initiate the Jacobian matrix  whose size is (measurementnumber)X(2*busnumber+tapnumber-1)
+
+
+
+
+
+
+
+
+
+
+
+
 
