@@ -19,11 +19,12 @@ filename = 'ieee_cdf.dat';
 headerlinesIn = busnumber+4;
 delimiterIn = ' ';
 A = importdata(filename,delimiterIn,headerlinesIn);
-B = A.data;
-C = size(B);
+Br = A.data;
+C = size(Br);
 D = C(1,1);
-B(D,:)=[];
-branchdata = B;
+Br(D,:)=[];
+fclose('all');
+branchdata = Br;
 sizebranch = size(branchdata);
 branchnumber = sizebranch(1,1);
 
@@ -65,6 +66,7 @@ measurementnumber = sizeofmeasurement(1,1);
 tapnumber = 0;
 for count = 1:branchnumber
   if branchdata(count,15) ~=0
+      tappedbranches(tapnumber+1,1)=count;
       tapnumber = tapnumber +1;
   end 
 end 
@@ -229,9 +231,99 @@ for count = n_v+2*n_pi+n_pf+1:n_v+2*n_pi+2*n_pf
     
 end 
 
+%For power injection matrices, we need to find G and B matrices 
+%Initiate the matrices:
+    G = zeros(busnumber,busnumber);
+    B = zeros(busnumber,busnumber);
+    
+%For considering tapping in the branches 
+branchdata2 = branchdata;
+for count = 1:tapnumber
+    branchdata2(tappedbranches(tapnumber),11)=branchdata2(tappedbranches(tapnumber),11)/x(2*busnumber-1+tapnumber,1);
+    branchdata2(tappedbranches(tapnumber),12)=(branchdata2(tappedbranches(tapnumber),12)*(1-x(2*busnumber-1+tapnumber,1)))/x(2*busnumber-1+tapnumber,1)^2;
+        
+end   
+for count = 1:busnumber
 
+    G(count,count)=busdata(count,15);
+    B(count,count)=busdata(count,16);
+end
+   for counter = 1:branchnumber 
+     
+    G(branchdata2(counter,1),branchdata2(counter,2))=G(branchdata2(counter,1),branchdata2(counter,2))-branchdata2(counter,10);
+    B(branchdata2(counter,1),branchdata2(counter,2))=B(branchdata2(counter,1),branchdata2(counter,2))-branchdata2(counter,11);
+    
+    G(branchdata2(counter,1),branchdata2(counter,1))=G(branchdata2(counter,1),branchdata2(counter,1))+branchdata2(counter,10);
+    B(branchdata2(counter,1),branchdata2(counter,1))=B(branchdata2(counter,1),branchdata2(counter,1))+branchdata2(counter,11);
+    
+    G(branchdata2(counter,2),branchdata2(counter,2))=G(branchdata2(counter,2),branchdata2(counter,2))+branchdata2(counter,10);
+    B(branchdata2(counter,2),branchdata2(counter,2))=B(branchdata2(counter,2),branchdata2(counter,2))+branchdata2(counter,11)+branchdata2(counter,12);   
+        
+   end
+   % Upper part of the G matrix have been calculated above. Actual matrices
+   % are calculated below.
+G = G +G'-tril(G,0);
+B = B +B'-tril(B,0);
 
+    for thetacounter = 2:busnumber   
+                theta = zeros(busnumber,1);
+                theta(thetacounter,1)=x(busnumber+thetacounter-1,1);
+    end
+    
 
+% In this part, power injection derivatives will be calculated based on G
+% and B values which are calculated above by considering transformar taps.
 
+%   delPi/delVi = sum ( Vj(Gij cos thetaij + Bij sin thetaij )+ Vi Gii
+
+for count = n_v+1:n_v+n_pi
+    
+    %Vi = x(measurementdata(count,1),1)
+    %Vj = x(measurementdata(count,2),1)
+    
+    %thetaij value is calculated as follows
+          
+    
+    
+    
+    for counter = 1:busnumber
+       if count~=counter
+           
+           
+     %   delPi/delVi = sum ( Vj(Gij cos thetaij + Bij sin thetaij )+ Vi Gii
+           sumdelpidelvi(counter,1) = x(counter)*(G(measurementdata(count,1),counter)*cos(theta(count)-theta(counter))+B(measurementdata(count,1),counter)*sin(theta(count)-theta(counter)));
+           
+                
+    
+    %   delPi/delVj = Vi(Gij cos thetaij + Bij sin thetaij )
+    
+             H(count,counter) = x(measurementdata(count,1),1)*...
+        (G(measurementdata(count,1),counter)*cos(theta(count)-theta(counter))+B(measurementdata(count,1),counter)*sin(theta(count)-theta(counter)));
+    
+    %   delPi/delthetai = sum ( ViVj(-Gij sinthetaij+Bij cos thetaij)) -Vi^2 Bii
+    
+            sumdelpidelthetai(counter,1) = x(counter)*x(measurementdata(count,1),1)*(-G(measurementdata(count,1),counter)*sin(theta(count)-theta(counter))+B(measurementdata(count,1),counter)*cos(theta(count)-theta(counter)));
+        
+    %   delPi/delthetaj = ViVj(Gij sin thetaij - Bij cos thetaij )  
+        
+                    if counter ~= 1
+             H(count,busnumber+counter-1) = x(counter)*x(measurementdata(count,1),1)*...
+        (G(measurementdata(count,1),counter)*sin(theta(count)-theta(counter))-B(measurementdata(count,1),counter)*cos(theta(count)-theta(counter)));    
+                    end
+       end
+       
+       
+       H(count,measurementdata(count,1)) = sum(sumdelpidelvi)+x(measurementdata(count,1),1)*G(counter,counter);
+       
+                if measurementdata(count,1) ~= 1
+       H(count,busnumber-1+measurementdata(count,1)) = sum(sumdelpidelthetai)-(x(measurementdata(count,1),1)^2)*B(measurementdata(count,1),measurementdata(count,1)); 
+                end
+    end 
+    
+    
+    
+   
+    
+end
 
 
