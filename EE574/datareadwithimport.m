@@ -18,7 +18,7 @@ measurementdata = dlmread('measure.dat');
 filename = 'ieee_cdf.dat';
 headerlinesIn = busnumber+4;
 delimiterIn = ' ';
-A = importdata(filename,delimiterIn,headerlinesIn)
+A = importdata(filename,delimiterIn,headerlinesIn);
 B = A.data;
 C = size(B);
 D = C(1,1);
@@ -91,46 +91,143 @@ for count = 1:n_v
     H(count,measurementdata(count,1))= measurementdata(count,1);
 end
 
-% Second part of the Jacobian is derivatives of the power flow
+% Third part of the Jacobian is derivatives of the power flow
 % measurements with respect to state vectors 
+
 % delPij/Vi = Vi^2(gij)-Vj(gij cos theta(ij) + bij sin theta ij )
 
 % Note that theta1 is assumed 0;
-for count = 1:branchnumber
-    if x(busnumber+branchdata(count,1),1) == 1
-    thetaij = -x(busnumber+branchdata(count,2),1);
+
+for count = n_v+2*n_pi+1:n_v+2*n_pi+n_pf
+    
+    %thetaij value is calculated as follows
+    
+    if measurementdata(count,1) == 1
+    thetaij = -x(busnumber+measurementdata(count,2)-1,1);
     else 
-    thetaij = x(busnumber+branchdata(count,1),1)-x(busnumber+branchdata(count,2),1);
+    thetaij = x(busnumber+measurementdata(count,1),1)-x(busnumber+measurementdata(count,2),1);
     end
     
-    % delPij/Vi = Vi^2(gij)-Vj(gij cos theta(ij) + bij sin theta ij )
 
-    H(n_v+2*n_pi+count,branchdata(count,1)) = (2*(x(branchdata(count,1),1)))*...
-        (branchdata(count,10))-((x(branchdata(count,2),1))*...
-        branchdata(count,10)*cos(thetaij)+...
-        (branchdata(count,11))*sin(thetaij));
+    
+    for count2 = 1:branchnumber
+        if measurementdata(count,1) == branchdata(count2,1) && measurementdata(count,2) == branchdata(count2,2) || ...
+                measurementdata(count,2) == branchdata(count2,1) && measurementdata(count,1) == branchdata(count2,2)
+                
+    %Vi = x(measurementdata(count,1),1)
+    %Vj = x(measurementdata(count,2),1)
+    %gij = branchdata(count2,10)
+    %bij = branchdata(count2,11)    
+    
+    % delPij/Vi = 2*Vi(gij)-Vj(gij cos theta(ij) + bij sin theta ij ) 
+    
+    H(count,measurementdata(count,1)) = (2*x(measurementdata(count,1),1))*...
+        branchdata(count2,10)-((x(measurementdata(count,2),1))*...
+        branchdata(count2,10)*cos(thetaij)+...
+        (branchdata(count2,11))*sin(thetaij));
+    
     
     % delPij/Vj = -Vi(gij cos theta(ij) + bij sin theta ij )
 
-    H(n_v+2*n_pi+count,branchdata(count,2)) = -(x(branchdata(count,1),1))*...
-        (branchdata(count,10)*cos(thetaij)+...
-        (branchdata(count,11))*sin(thetaij));
+    H(count,measurementdata(count,2)) = -(x(measurementdata(count,1),1))*...
+        (branchdata(count2,10)*cos(thetaij)+...
+        (branchdata(count2,11))*sin(thetaij));   
     
-    % delPij/thetai = Vi(gij sin theta(ij) - bij cos theta ij )
+        
+            if branchdata(count2,1) ~= 1
+            
+    % delPij/thetai = ViVj(gij sin theta(ij) - bij cos theta ij )     
+            
+     H(count,busnumber+measurementdata(count,1)-1) = x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
+         (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij));
     
-    if branchdata(count,1) ~= 1;
-    H(n_v+count+2*n_pi,busnumber+branchdata(count,1)-1) = (x(branchdata(count,1),1))*(x(branchdata(count,2),1))*...
-        (branchdata(count,10)*sin(thetaij)-...
-        (branchdata(count,11))*cos(thetaij));
+    % delPij/thetaj = -ViVj(gij sin theta(ij) - bij cos theta ij )     
+            
+     H(count,busnumber+measurementdata(count,2)-1) = (-1)* x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
+         (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij));
+            end
+            
+            
+            if branchdata(count2,1) == 1
+            
+
+    
+    % delPij/thetaj = -ViVj(gij sin theta(ij) - bij cos theta ij )     
+            
+     H(count,busnumber+measurementdata(count,2)-1) = (-1)* x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
+         (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij));
+            end
+        end
     end
-    % delPij/thetaj = -ViVj(gij sin theta(ij) - bij cos theta ij )
-    if branchdata(count,2) ~= 1;
-    H(n_v+count+2*n_pi,busnumber+branchdata(count,2)-1) = -(x(branchdata(count,1),1))*(x(branchdata(count,2),1))*...
-        (branchdata(count,10)*sin(thetaij)-...
-        (branchdata(count,11))*cos(thetaij));
-    end
+    
+    
 end 
 
+% The reactive power flow derivatives are calculated in a similar manner. 
+
+for count = n_v+2*n_pi+n_pf+1:n_v+2*n_pi+2*n_pf
+    
+    %thetaij value is calculated as follows
+    
+    if measurementdata(count,1) == 1
+    thetaij = -x(busnumber+measurementdata(count,2)-1,1);
+    else 
+    thetaij = x(busnumber+measurementdata(count,1),1)-x(busnumber+measurementdata(count,2),1);
+    end
+    
+
+    
+    for count2 = 1:branchnumber
+        if measurementdata(count,1) == branchdata(count2,1) && measurementdata(count,2) == branchdata(count2,2) || ...
+                measurementdata(count,2) == branchdata(count2,1) && measurementdata(count,1) == branchdata(count2,2)
+                
+    %Vi = x(measurementdata(count,1),1)
+    %Vj = x(measurementdata(count,2),1)
+    %gij = branchdata(count2,10)
+    %bij = branchdata(count2,11)    
+    %bsi = branchdata(count2,12) 
+    
+    % delQij/Vi = -Vj(gij sin theta(ij) - bij cos theta ij ) - 2*Vi(bij+bsi)
+    
+    H(count,measurementdata(count,1)) = (-1)*x(measurementdata(count,2),1)*...
+         (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij))...
+         - (2)*(x(measurementdata(count,1),1))*(branchdata(count2,11)+branchdata(count2,12));
+    
+    
+    % delQij/Vj = -Vi(gij sin theta(ij) - bij cos theta ij )
+
+    H(count,measurementdata(count,2)) = (-1)*x(measurementdata(count,1),1)*...
+         (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij));   
+    
+        
+            if branchdata(count2,1) ~= 1
+            
+    % delQij/thetai = -ViVj(gij cos theta(ij) - bij sin theta ij )     
+            
+     H(count,busnumber+measurementdata(count,1)-1) = (-1)*x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
+         (branchdata(count2,10)*cos(thetaij)-branchdata(count2,11)*sin(thetaij));
+    
+    % delQij/thetaj = ViVj(gij cos theta(ij) + bij sin theta ij )     
+            
+     H(count,busnumber+measurementdata(count,2)-1) =  x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
+         (branchdata(count2,10)*cos(thetaij)+branchdata(count2,11)*sin(thetaij));
+            end
+            
+            
+            if branchdata(count2,1) == 1
+            
+
+    
+    % delQij/thetaj = ViVj(gij cos theta(ij) + bij sin theta ij )     
+            
+     H(count,busnumber+measurementdata(count,2)-1) = x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
+         (branchdata(count2,10)*cos(thetaij)+branchdata(count2,11)*sin(thetaij));
+            end
+        end
+    end
+       
+    
+end 
 
 
 
