@@ -127,7 +127,7 @@ for count = n_v+2*n_pi+1:n_v+2*n_pi+n_pf
         branchdata(count2,10)-((x(measurementdata(count,2),1))*...
         branchdata(count2,10)*cos(thetaij)+...
         (branchdata(count2,11))*sin(thetaij));
-    
+%      disp(H(count,measurementdata(count,1)))
     
     % delPij/Vj = -Vi(gij cos theta(ij) + bij sin theta ij )
 
@@ -149,7 +149,22 @@ for count = n_v+2*n_pi+1:n_v+2*n_pi+n_pf
          (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij));
             end
             
-            
+    % delPij/dela = (Vi*a)*(delPij/delVi)
+   
+    for counttap = 1:tapnumber
+        if count2 == tappedbranches(counttap)
+            %disp(count2)
+            %disp(H(count,measurementdata(count,1)))
+        H(count,2*busnumber-1+counttap) =H(count,measurementdata(count,1))* x(measurementdata(count,1))*x(2*busnumber-1+counttap);
+        
+        end
+        
+    end
+    
+    
+    
+    
+    
             if branchdata(count2,1) == 1
             
 
@@ -194,13 +209,15 @@ for count = n_v+2*n_pi+n_pf+1:n_v+2*n_pi+2*n_pf
     H(count,measurementdata(count,1)) = (-1)*x(measurementdata(count,2),1)*...
          (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij))...
          - (2)*(x(measurementdata(count,1),1))*(branchdata(count2,11)+branchdata(count2,12));
-    
+%      disp( H(count,measurementdata(count,1)))
+         
     
     % delQij/Vj = -Vi(gij sin theta(ij) - bij cos theta ij )
 
     H(count,measurementdata(count,2)) = (-1)*x(measurementdata(count,1),1)*...
          (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij));   
     
+     
         
             if branchdata(count2,1) ~= 1
             
@@ -215,7 +232,17 @@ for count = n_v+2*n_pi+n_pf+1:n_v+2*n_pi+2*n_pf
          (branchdata(count2,10)*cos(thetaij)+branchdata(count2,11)*sin(thetaij));
             end
             
-            
+     for counttap = 1:tapnumber
+        if count2 == tappedbranches(counttap)
+            disp(count2)
+            %disp(H(count,measurementdata(count,1)))
+        H(count,2*busnumber-1+counttap) =H(count,measurementdata(count,1))* x(measurementdata(count,1))*x(2*busnumber-1+counttap);
+        disp(H(count,2*busnumber-1+counttap))
+        end
+        
+     end
+    
+     
             if branchdata(count2,1) == 1
             
 
