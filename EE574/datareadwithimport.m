@@ -283,34 +283,32 @@ for count = n_v+1:n_v+n_pi
     
     %thetaij value is calculated as follows
           
-    
+    %thetaij = theta(count)-theta(counter)
     
     
     for counter = 1:busnumber
-       if count~=counter
-           
-           
+                  
      %   delPi/delVi = sum ( Vj(Gij cos thetaij + Bij sin thetaij )+ Vi Gii
-           sumdelpidelvi(counter,1) = x(counter)*(G(measurementdata(count,1),counter)*cos(theta(count)-theta(counter))+B(measurementdata(count,1),counter)*sin(theta(count)-theta(counter)));
+           sumdelpidelvi(counter,1) = x(counter)*(G(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter))+B(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter)));
            
                 
     
     %   delPi/delVj = Vi(Gij cos thetaij + Bij sin thetaij )
     
              H(count,counter) = x(measurementdata(count,1),1)*...
-        (G(measurementdata(count,1),counter)*cos(theta(count)-theta(counter))+B(measurementdata(count,1),counter)*sin(theta(count)-theta(counter)));
+        (G(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter))+B(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter)));
     
     %   delPi/delthetai = sum ( ViVj(-Gij sinthetaij+Bij cos thetaij)) -Vi^2 Bii
     
-            sumdelpidelthetai(counter,1) = x(counter)*x(measurementdata(count,1),1)*(-G(measurementdata(count,1),counter)*sin(theta(count)-theta(counter))+B(measurementdata(count,1),counter)*cos(theta(count)-theta(counter)));
+            sumdelpidelthetai(counter,1) = x(counter)*x(measurementdata(count,1),1)*(-G(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter))+B(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter)));
         
     %   delPi/delthetaj = ViVj(Gij sin thetaij - Bij cos thetaij )  
         
                     if counter ~= 1
              H(count,busnumber+counter-1) = x(counter)*x(measurementdata(count,1),1)*...
-        (G(measurementdata(count,1),counter)*sin(theta(count)-theta(counter))-B(measurementdata(count,1),counter)*cos(theta(count)-theta(counter)));    
+        (G(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter))-B(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter)));    
                     end
-       end
+
        
        
        H(count,measurementdata(count,1)) = sum(sumdelpidelvi)+x(measurementdata(count,1),1)*G(counter,counter);
@@ -322,8 +320,53 @@ for count = n_v+1:n_v+n_pi
     
     
     
-   
     
 end
+% Here reactive power injection derivatives begins:
 
+for count = n_v+n_pi+1:n_v+2*n_pi
+    
+    %Vi = x(measurementdata(count,1),1)
+    %Vj = x(measurementdata(count,2),1)
+    
+    %thetaij value is calculated as follows
+          
+    %thetaij = theta(count)-theta(counter)
+    
+    
+    for counter = 1:busnumber
+                  
+     %   delQi/delVi = sum ( Vj(Gij sin thetaij - Bij cos thetaij ) - Vi Bii
+           sumdelqidelvi(counter,1) = x(counter)*(G(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter))-B(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter)));
+           
+                
+    
+    %   delQi/delVj = Vi(Gij sin thetaij - Bij cos thetaij )
+    
+             H(count,counter) = x(measurementdata(count,1),1)*...
+        (G(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter))-B(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter)));
+    
+    %   delQi/delthetai = sum ( ViVj(Gij costhetaij+Bij sin thetaij)) -Vi^2 Gii
+    
+            sumdelqidelthetai(counter,1) = x(counter)*x(measurementdata(count,1),1)*(G(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter))+B(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter)));
+        
+    %   delQi/delthetaj = ViVj(-Gij cos thetaij - Bij sin thetaij )  
+        
+                    if counter ~= 1
+             H(count,busnumber+counter-1) = x(counter)*x(measurementdata(count,1),1)*...
+        (-G(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter))-B(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter)));    
+                    end
+
+       
+       
+       H(count,measurementdata(count,1)) = sum(sumdelqidelvi)-x(measurementdata(count,1),1)*B(measurementdata(count,1),measurementdata(count,1));
+       
+                if measurementdata(count,1) ~= 1
+       H(count,busnumber-1+measurementdata(count,1)) = sum(sumdelqidelthetai)-(x(measurementdata(count,1),1)^2)*G(measurementdata(count,1),measurementdata(count,1)); 
+                end
+    end 
+    
+    
+    
+end
 
