@@ -93,170 +93,7 @@ for count = 1:n_v
     H(count,measurementdata(count,1))= measurementdata(count,1);
 end
 
-% Third part of the Jacobian is derivatives of the power flow
-% measurements with respect to state vectors 
 
-% delPij/Vi = Vi^2(gij)-Vj(gij cos theta(ij) + bij sin theta ij )
-
-% Note that theta1 is assumed 0;
-
-for count = n_v+2*n_pi+1:n_v+2*n_pi+n_pf
-    
-    %thetaij value is calculated as follows
-    
-    if measurementdata(count,1) == 1
-    thetaij = -x(busnumber+measurementdata(count,2)-1,1);
-    else 
-    thetaij = x(busnumber+measurementdata(count,1),1)-x(busnumber+measurementdata(count,2),1);
-    end
-    
-
-    
-    for count2 = 1:branchnumber
-        if measurementdata(count,1) == branchdata(count2,1) && measurementdata(count,2) == branchdata(count2,2) || ...
-                measurementdata(count,2) == branchdata(count2,1) && measurementdata(count,1) == branchdata(count2,2)
-                
-    %Vi = x(measurementdata(count,1),1)
-    %Vj = x(measurementdata(count,2),1)
-    %gij = branchdata(count2,10)
-    %bij = branchdata(count2,11)    
-    
-    % delPij/Vi = 2*Vi(gij)-Vj(gij cos theta(ij) + bij sin theta ij ) 
-    
-    H(count,measurementdata(count,1)) = (2*x(measurementdata(count,1),1))*...
-        branchdata(count2,10)-((x(measurementdata(count,2),1))*...
-        branchdata(count2,10)*cos(thetaij)+...
-        (branchdata(count2,11))*sin(thetaij));
-%      disp(H(count,measurementdata(count,1)))
-    
-    % delPij/Vj = -Vi(gij cos theta(ij) + bij sin theta ij )
-
-    H(count,measurementdata(count,2)) = -(x(measurementdata(count,1),1))*...
-        (branchdata(count2,10)*cos(thetaij)+...
-        (branchdata(count2,11))*sin(thetaij));   
-    
-        
-            if branchdata(count2,1) ~= 1
-            
-    % delPij/thetai = ViVj(gij sin theta(ij) - bij cos theta ij )     
-            
-     H(count,busnumber+measurementdata(count,1)-1) = x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
-         (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij));
-    
-    % delPij/thetaj = -ViVj(gij sin theta(ij) - bij cos theta ij )     
-            
-     H(count,busnumber+measurementdata(count,2)-1) = (-1)* x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
-         (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij));
-            end
-            
-    % delPij/dela = (Vi*a)*(delPij/delVi)
-   
-    for counttap = 1:tapnumber
-        if count2 == tappedbranches(counttap)
-            %disp(count2)
-            %disp(H(count,measurementdata(count,1)))
-        H(count,2*busnumber-1+counttap) =H(count,measurementdata(count,1))* x(measurementdata(count,1))*x(2*busnumber-1+counttap);
-        
-        end
-        
-    end
-    
-    
-    
-    
-    
-            if branchdata(count2,1) == 1
-            
-
-    
-    % delPij/thetaj = -ViVj(gij sin theta(ij) - bij cos theta ij )     
-            
-     H(count,busnumber+measurementdata(count,2)-1) = (-1)* x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
-         (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij));
-            end
-        end
-    end
-    
-    
-end 
-
-% The reactive power flow derivatives are calculated in a similar manner. 
-
-for count = n_v+2*n_pi+n_pf+1:n_v+2*n_pi+2*n_pf
-    
-    %thetaij value is calculated as follows
-    
-    if measurementdata(count,1) == 1
-    thetaij = -x(busnumber+measurementdata(count,2)-1,1);
-    else 
-    thetaij = x(busnumber+measurementdata(count,1),1)-x(busnumber+measurementdata(count,2),1);
-    end
-    
-
-    
-    for count2 = 1:branchnumber
-        if measurementdata(count,1) == branchdata(count2,1) && measurementdata(count,2) == branchdata(count2,2) || ...
-                measurementdata(count,2) == branchdata(count2,1) && measurementdata(count,1) == branchdata(count2,2)
-                
-    %Vi = x(measurementdata(count,1),1)
-    %Vj = x(measurementdata(count,2),1)
-    %gij = branchdata(count2,10)
-    %bij = branchdata(count2,11)    
-    %bsi = branchdata(count2,12) 
-    
-    % delQij/Vi = -Vj(gij sin theta(ij) - bij cos theta ij ) - 2*Vi(bij+bsi)
-    
-    H(count,measurementdata(count,1)) = (-1)*x(measurementdata(count,2),1)*...
-         (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij))...
-         - (2)*(x(measurementdata(count,1),1))*(branchdata(count2,11)+branchdata(count2,12));
-%      disp( H(count,measurementdata(count,1)))
-         
-    
-    % delQij/Vj = -Vi(gij sin theta(ij) - bij cos theta ij )
-
-    H(count,measurementdata(count,2)) = (-1)*x(measurementdata(count,1),1)*...
-         (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij));   
-    
-     
-        
-            if branchdata(count2,1) ~= 1
-            
-    % delQij/thetai = -ViVj(gij cos theta(ij) - bij sin theta ij )     
-            
-     H(count,busnumber+measurementdata(count,1)-1) = (-1)*x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
-         (branchdata(count2,10)*cos(thetaij)-branchdata(count2,11)*sin(thetaij));
-    
-    % delQij/thetaj = ViVj(gij cos theta(ij) + bij sin theta ij )     
-            
-     H(count,busnumber+measurementdata(count,2)-1) =  x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
-         (branchdata(count2,10)*cos(thetaij)+branchdata(count2,11)*sin(thetaij));
-            end
-            
-     for counttap = 1:tapnumber
-        if count2 == tappedbranches(counttap)
-            disp(count2)
-            %disp(H(count,measurementdata(count,1)))
-        H(count,2*busnumber-1+counttap) =H(count,measurementdata(count,1))* x(measurementdata(count,1))*x(2*busnumber-1+counttap);
-        disp(H(count,2*busnumber-1+counttap))
-        end
-        
-     end
-    
-     
-            if branchdata(count2,1) == 1
-            
-
-    
-    % delQij/thetaj = ViVj(gij cos theta(ij) + bij sin theta ij )     
-            
-     H(count,busnumber+measurementdata(count,2)-1) = x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
-         (branchdata(count2,10)*cos(thetaij)+branchdata(count2,11)*sin(thetaij));
-            end
-        end
-    end
-       
-    
-end 
 
 %For power injection matrices, we need to find G and B matrices 
 %Initiate the matrices:
@@ -298,7 +135,7 @@ B = B +B'-tril(B,0);
     end
     
 
-% In this part, power injection derivatives will be calculated based on G
+% In the second part, power injection derivatives will be calculated based on G
 % and B values which are calculated above by considering transformar taps.
 
 %   delPi/delVi = sum ( Vj(Gij cos thetaij + Bij sin thetaij )+ Vi Gii
@@ -396,4 +233,167 @@ for count = n_v+n_pi+1:n_v+2*n_pi
     
     
 end
+
+% Third part of the Jacobian is derivatives of the power flow
+% measurements with respect to state vectors 
+
+% delPij/Vi = Vi^2(gij)-Vj(gij cos theta(ij) + bij sin theta ij )
+
+% Note that theta1 is assumed 0;
+
+for count = n_v+2*n_pi+1:n_v+2*n_pi+n_pf
+    
+    %thetaij value is calculated as follows
+    
+    if measurementdata(count,1) == 1
+    thetaij = -x(busnumber+measurementdata(count,2)-1,1);
+    else 
+    thetaij = x(busnumber+measurementdata(count,1),1)-x(busnumber+measurementdata(count,2),1);
+    end
+    
+
+    
+    for count2 = 1:branchnumber
+        if measurementdata(count,1) == branchdata(count2,1) && measurementdata(count,2) == branchdata(count2,2) || ...
+                measurementdata(count,2) == branchdata(count2,1) && measurementdata(count,1) == branchdata(count2,2)
+                
+    %Vi = x(measurementdata(count,1),1)
+    %Vj = x(measurementdata(count,2),1)
+    %gij = branchdata(count2,10)
+    %bij = branchdata(count2,11)    
+    
+    % delPij/Vi = 2*Vi(gij)-Vj(gij cos theta(ij) + bij sin theta ij ) 
+    
+    H(count,measurementdata(count,1)) = (2*x(measurementdata(count,1),1))*...
+        branchdata(count2,10)-((x(measurementdata(count,2),1))*...
+        branchdata(count2,10)*cos(thetaij)+...
+        (branchdata(count2,11))*sin(thetaij));
+%      disp(H(count,measurementdata(count,1)))
+    
+    % delPij/Vj = -Vi(gij cos theta(ij) + bij sin theta ij )
+
+    H(count,measurementdata(count,2)) = -(x(measurementdata(count,1),1))*...
+        (branchdata(count2,10)*cos(thetaij)+...
+        (branchdata(count2,11))*sin(thetaij));   
+    
+        
+            if branchdata(count2,1) ~= 1
+            
+    % delPij/thetai = ViVj(gij sin theta(ij) - bij cos theta ij )     
+            
+     H(count,busnumber+measurementdata(count,1)-1) = x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
+         (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij));
+    
+    % delPij/thetaj = -ViVj(gij sin theta(ij) - bij cos theta ij )     
+            
+     H(count,busnumber+measurementdata(count,2)-1) = (-1)* x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
+         (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij));
+            end
+            
+    % delPij/dela = (Vi*a)*(delPij/delVi)
+   
+    for counttap = 1:tapnumber
+        if count2 == tappedbranches(counttap)
+            %disp(count2)
+            %disp(H(count,measurementdata(count,1)))
+        H(count,2*busnumber-1+counttap) =H(count,measurementdata(count,1))* x(measurementdata(count,1))*x(2*busnumber-1+counttap);
+        
+        end
+        
+    end
+    
+    
+    
+            if branchdata(count2,1) == 1
+           
+    
+    % delPij/thetaj = -ViVj(gij sin theta(ij) - bij cos theta ij )     
+            
+     H(count,busnumber+measurementdata(count,2)-1) = (-1)* x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
+         (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij));
+            end
+        end
+    end
+    
+    
+end 
+
+% The reactive power flow derivatives are calculated in a similar manner. 
+
+for count = n_v+2*n_pi+n_pf+1:n_v+2*n_pi+2*n_pf
+    
+    %thetaij value is calculated as follows
+    
+    if measurementdata(count,1) == 1
+    thetaij = -x(busnumber+measurementdata(count,2)-1,1);
+    else 
+    thetaij = x(busnumber+measurementdata(count,1),1)-x(busnumber+measurementdata(count,2),1);
+    end
+    
+
+    
+    for count2 = 1:branchnumber
+        if measurementdata(count,1) == branchdata(count2,1) && measurementdata(count,2) == branchdata(count2,2) || ...
+                measurementdata(count,2) == branchdata(count2,1) && measurementdata(count,1) == branchdata(count2,2)
+                
+    %Vi = x(measurementdata(count,1),1)
+    %Vj = x(measurementdata(count,2),1)
+    %gij = branchdata(count2,10)
+    %bij = branchdata(count2,11)    
+    %bsi = branchdata(count2,12) 
+    
+    % delQij/Vi = -Vj(gij sin theta(ij) - bij cos theta ij ) - 2*Vi(bij+bsi)
+    
+    H(count,measurementdata(count,1)) = (-1)*x(measurementdata(count,2),1)*...
+         (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij))...
+         - (2)*(x(measurementdata(count,1),1))*(branchdata(count2,11)+branchdata(count2,12));
+%      disp( H(count,measurementdata(count,1)))
+         
+    
+    % delQij/Vj = -Vi(gij sin theta(ij) - bij cos theta ij )
+
+    H(count,measurementdata(count,2)) = (-1)*x(measurementdata(count,1),1)*...
+         (branchdata(count2,10)*sin(thetaij)-branchdata(count2,11)*cos(thetaij));   
+    
+     
+        
+            if branchdata(count2,1) ~= 1
+            
+    % delQij/thetai = -ViVj(gij cos theta(ij) - bij sin theta ij )     
+            
+     H(count,busnumber+measurementdata(count,1)-1) = (-1)*x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
+         (branchdata(count2,10)*cos(thetaij)-branchdata(count2,11)*sin(thetaij));
+    
+    % delQij/thetaj = ViVj(gij cos theta(ij) + bij sin theta ij )     
+            
+     H(count,busnumber+measurementdata(count,2)-1) =  x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
+         (branchdata(count2,10)*cos(thetaij)+branchdata(count2,11)*sin(thetaij));
+            end
+            
+     for counttap = 1:tapnumber
+        if count2 == tappedbranches(counttap)
+            disp(count2)
+            %disp(H(count,measurementdata(count,1)))
+        H(count,2*busnumber-1+counttap) =H(count,measurementdata(count,1))* x(measurementdata(count,1))*x(2*busnumber-1+counttap);
+        disp(H(count,2*busnumber-1+counttap))
+        end
+        
+     end
+    
+     
+            if branchdata(count2,1) == 1
+            
+
+    
+    % delQij/thetaj = ViVj(gij cos theta(ij) + bij sin theta ij )     
+            
+     H(count,busnumber+measurementdata(count,2)-1) = x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*...
+         (branchdata(count2,10)*cos(thetaij)+branchdata(count2,11)*sin(thetaij));
+            end
+        end
+    end
+       
+    
+end 
+
 
