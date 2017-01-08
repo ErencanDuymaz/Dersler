@@ -86,15 +86,17 @@ end
 
 H = zeros(measurementnumber,2*busnumber-1+tapnumber);
 
+%------------------Here Jacobian Construction Starts-------------------
+
 %First part of the Jacobian matrix is derivatives of the measurement
 %voltages with respect to state vectors 
-
+%------------------
 for count = 1:n_v
     H(count,measurementdata(count,1))= measurementdata(count,1);
     % derV=dela is assumed to be zero. Therefore, no further calculation is
     % made for neither for tap ratios nor for phase angles.
 end
-
+%------------------
 
 
 %For power injection matrices, we need to find G and B matrices 
@@ -103,7 +105,9 @@ end
     B = zeros(busnumber,busnumber);
     
 %For considering tapping in the branches 
-branchdata2 = branchdata;
+
+branchdata2 = branchdata; 
+
 for count = 1:tapnumber
     branchdata2(tappedbranches(tapnumber),11)=branchdata2(tappedbranches(tapnumber),11)/x(2*busnumber-1+tapnumber,1);
     branchdata2(tappedbranches(tapnumber),12)=(branchdata2(tappedbranches(tapnumber),12)*(1-x(2*busnumber-1+tapnumber,1)))/x(2*busnumber-1+tapnumber,1)^2;
@@ -639,6 +643,30 @@ for count = n_v+2*n_pi+2*n_pf+1:n_v+2*n_pi+2*n_pf+n_c
 end
 
 
-% The remaining part of the Jacobian matrix is the derivatives of injection
-% measurements with respect to tap ratios 
+% Now we can calculate our gain matrix. 
+
+% First construct R^-1 matrix whose size is measurementnumberXmeasurementnumber
+%From now on R^-1 will be called R
+
+R = zeros(measurementnumber,measurementnumber);
+for count = 1:n_v+2*n_pi
+R(count,count)=measurementdata(count,3)^(-1);
+end
+
+for count = n_v+2*n_pi+1:n_v+2*n_pi+2*n_pf+n_c
+R(count,count)=measurementdata(count,4)^(-1);
+end
+
+% Then G can be calculated by using H and R
+
+Gain = H'*R*H;
+
+% Now, it is time to decompose G to its lower and upper triangular forms
+
+% For this purpose, Cholesky decomposition can be used.
+
+L = chol(Gain,'lower');
+U = L';
+Gain2=L*U;
+
 
