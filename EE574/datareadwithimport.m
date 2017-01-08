@@ -160,15 +160,13 @@ for count = n_v+1:n_v+n_pi
                   
      %   delPi/delVi = sum ( Vj(Gij cos thetaij + Bij sin thetaij )+ Vi Gii
            sumdelpidelvi(counter,1) = x(counter)*(G(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter))+B(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter)));
-           
-                
+               
     
     %   delPi/delVj = Vi(Gij cos thetaij + Bij sin thetaij )
     
              H(count,counter) = x(measurementdata(count,1),1)*...
         (G(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter))+B(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter)));
     
-
     
     %   delPi/delthetai = sum ( ViVj(-Gij sinthetaij+Bij cos thetaij)) -Vi^2 Bii
     
@@ -317,14 +315,14 @@ for count = n_v+2*n_pi+1:n_v+2*n_pi+n_pf
     
                 for count3 = n_v+1:n_v+n_pi
                         if measurementdata(count,1) == measurementdata(count3,1)
-        H(count3,2*busnumber-1+counttap) = H(count3,2*busnumber-1+counttap)+H(count,2*busnumber-1+counttap);
+        H(count3,2*busnumber-1+counttap) = H(count,2*busnumber-1+counttap);
         
     
                         end
     
                         if measurementdata(count,2) == measurementdata(count3,1)
     
-        H(count3,2*busnumber-1+counttap) = H(count3,2*busnumber-1+counttap)-H(count,2*busnumber-1+counttap);
+        H(count3,2*busnumber-1+counttap) = -H(count,2*busnumber-1+counttap);
 
      
                         end
@@ -418,18 +416,18 @@ for count = n_v+2*n_pi+n_pf+1:n_v+2*n_pi+2*n_pf
 
         
         % How to calculate delPi/dela is as follows:
-        % If there exists a delPij/dela, the it is equal to delPi/delA.
+        % If there exists a delPij/dela, the it is equal to delPi/dela.
     
                 for count3 = n_v+n_pi+1:n_v+2*n_pi
                         if measurementdata(count,1) == measurementdata(count3,1)
-        H(count3,2*busnumber-1+counttap) = H(count3,2*busnumber-1+counttap)+H(count,2*busnumber-1+counttap);
+        H(count3,2*busnumber-1+counttap) = H(count,2*busnumber-1+counttap);
 %         disp(H(count3,2*busnumber-1+tapnumber))
     
                         end
     
                         if measurementdata(count,2) == measurementdata(count3,1)
     
-        H(count3,2*busnumber-1+counttap) = H(count3,2*busnumber-1+counttap)-H(count,2*busnumber-1+counttap);
+        H(count3,2*busnumber-1+counttap) = -H(count,2*busnumber-1+counttap);
 %         disp(H(count3,2*busnumber-1+tapnumber))
                         end
   
@@ -512,9 +510,6 @@ for count = n_v+2*n_pi+2*n_pf+1:n_v+2*n_pi+2*n_pf+n_c
           (x(measurementdata(count,1),1)*x(measurementdata(count,2),1)*sin(theta(measurementdata(count,1),1)-theta(measurementdata(count,2),1)));
                 end
       
-
-
-
 
 
 % Same procedure will be calculated by using diff function in the
@@ -624,22 +619,17 @@ for count = n_v+2*n_pi+2*n_pf+1:n_v+2*n_pi+2*n_pf+n_c
                 Iij = sqrt(Pij^2+Qij^2)/x(measurementdata(count,1),1);
                 dIij = diff(Iij,a);
 
-                H(count,2*busnumber-1+tapcounter)=subs(dIij,a,x(measurementdata(count,1)));
-
-
+                H(count,2*busnumber-1+tapcounter)=subs(dIij,a,x(2*busnumber-1+tapcounter));
+                
                         end
-                              
-                    
+                                   
                     end
  
       end
     
       
   end
-    
- 
-    
-    
+   
 end
 
 
