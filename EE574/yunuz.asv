@@ -1,0 +1,17 @@
+% In this file, some formulations will be created with the help of MATLAB
+
+syms Vi_value Vj_value gijtemp gsi thetai thetaj bijtemp bsi a
+
+thetaij =thetai-thetaj;
+Pij = (Vi_value^2)*(gijtemp*((1-a)/(a^2))+gijtemp/a) - (Vi_value*Vj_value*(gijtemp*cos(thetaij)+bijtemp*sin(thetaij)))/a;
+
+Qij = -(Vi_value^2)*(bijtemp*((1-a)/(a^2))+bijtemp/a) - (Vi_value*Vj_value*(gijtemp*sin(thetaij)-bijtemp*cos(thetaij)))/a;
+
+Iij = sqrt(Pij^2+Qij^2)/Vi_value;
+
+A = diff(Iij,a)
+B = diff(Iij,Vi_value)
+C = diff(Iij,Vj_value)
+D = diff(Iij,thetai)
+E = diff(Iij,thetaj)
+
