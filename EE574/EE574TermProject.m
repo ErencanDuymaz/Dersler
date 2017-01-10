@@ -72,8 +72,8 @@ for count = 1:branchnumber
 end 
 
 theta = zeros(busnumber,1);
-W = zeros(2*busnumber-1,1)
-delx=zeros(2*busnumber-1,1)
+W = zeros(2*busnumber+tapnumber-1,1);
+delx=zeros(2*busnumber+tapnumber-1,1);
 
 z = zeros(measurementnumber,1);
 for count = 1:n_v+2*n_pi
@@ -95,16 +95,24 @@ for count = 2*busnumber:2*busnumber+tapnumber-1
 end
 
 
-
-
 %For power injection matrices, we need to find G and B matrices 
 %Initiate the matrices:
     G = zeros(busnumber,busnumber);
     B = zeros(busnumber,busnumber);
     
-%For considering tapping in the branches 
-
+h = zeros(measurementnumber,1); %This is the measurement function    
+    %------------------------- Iteration Starts---------------------
+ma = 5;
+ Eps = 10^(-3);
+ k = 0;
 branchdata2 = branchdata; 
+ 
+while ma>Eps
+   
+%For considering tapping in the branches
+
+
+
 
 for count = 1:tapnumber
     branchdata2(tappedbranches(tapnumber),11)=branchdata2(tappedbranches(tapnumber),11)/x(2*busnumber-1+tapnumber,1);
@@ -128,6 +136,7 @@ end
     B(branchdata2(counter,2),branchdata2(counter,2))=B(branchdata2(counter,2),branchdata2(counter,2))+branchdata2(counter,11)+branchdata2(counter,12);   
         
    end
+   
    % Upper part of the G and B matrices have been calculated above. Actual matrices
    % are calculated below.
    
@@ -140,7 +149,7 @@ B = B +B'-tril(B,0);
 %--------------------h(x)---------------------------------
 % Measurement function should be created while Jacobian is computed.
 
-h = zeros(measurementnumber,1);
+
 %For Voltage Magnitude take the value in the state vector
 
 for count = 1:n_v
@@ -179,7 +188,6 @@ end
 % In the second part, power injection derivatives will be calculated based on G
 % and B values which are calculated above by considering transformar taps.
 
-%   delPi/delVi = sum ( Vj(Gij cos thetaij + Bij sin thetaij )+ Vi Gii
 
 for count = n_v+1:n_v+n_pi
     
@@ -194,7 +202,9 @@ for count = n_v+1:n_v+n_pi
     for counter = 1:busnumber
                   
      %   delPi/delVi = sum ( Vj(Gij cos thetaij + Bij sin thetaij )+ Vi Gii
-           H(count,measurementdata(count,1)) = sum(x(counter)*(G(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter))+B(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter))))...
+     
+           H(count,measurementdata(count,1)) = sum(x(counter)*(G(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter))+...
+               B(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter))))...
                +x(measurementdata(count,1),1)*G(measurementdata(count,1),measurementdata(count,1));
 %            disp(H(count,measurementdata(count,1)))
 %            disp(measurementdata(count,1))
@@ -211,7 +221,9 @@ for count = n_v+1:n_v+n_pi
     
                 if measurementdata(count,1) ~= 1
                     
-        H(count,busnumber-1+measurementdata(count,1)) = sum(x(counter)*x(measurementdata(count,1),1)*(-G(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter))+B(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter))))-(x(measurementdata(count,1),1)^2)*B(measurementdata(count,1),measurementdata(count,1)); 
+        H(count,busnumber-1+measurementdata(count,1)) = sum(x(counter)*x(measurementdata(count,1),1)*...
+            (-G(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter))+...
+            B(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter))))-(x(measurementdata(count,1),1)^2)*B(measurementdata(count,1),measurementdata(count,1)); 
                 end
                 
     %   delPi/delthetaj = ViVj(Gij sin thetaij - Bij cos thetaij ) 
@@ -224,7 +236,7 @@ for count = n_v+1:n_v+n_pi
  
                     
     
-    %--------------------h(x)---------------------------------
+    %--------------------h(x)----------------------------------------------------------------------------------------------
     % While calculating power injection derivatives, measurement function
     % should also be computed.
     
@@ -234,7 +246,7 @@ for count = n_v+1:n_v+n_pi
         (G(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter))+...
         B(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter))));
    
-   %-----------------------------------------------------
+   %----------------------------------------------------------------------------------------------------------------------------
    
           
 
@@ -276,7 +288,8 @@ for count = n_v+n_pi+1:n_v+2*n_pi
     %   delQi/delVj = Vi(Gij sin thetaij - Bij cos thetaij )
     
        H(count,counter) = x(measurementdata(count,1),1)*...
-        (G(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter))-B(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter)));
+        (G(measurementdata(count,1),counter)*sin(theta(measurementdata(count,1))-theta(counter))-...
+        B(measurementdata(count,1),counter)*cos(theta(measurementdata(count,1))-theta(counter)));
     
     %   delQi/delthetai = sum ( ViVj(Gij costhetaij+Bij sin thetaij)) -Vi^2 Gii
 
@@ -704,20 +717,24 @@ t = H'*R*(z-h);
 for count = 1:size(L,1)
     for counter = 1:size(L,1)
         
-     W(count)=(1/L(count,count))*(t(count)-sum(L(count,counter)*W(counter)));
+     W(count)=(1/L(count,count))*(t(count)-sum(L(count,counter)*W(counter,1)));
                 
     end 
             
 end
-%Backward Substituion--> U delX = W
-for count = 1:size(L,1)
-    for counter = 1:size(L,1)
+% Backward Substituion--> U delX = W
+for count = 1:2*busnumber+tapnumber-1
+    for counter = 1:2*busnumber+tapnumber-1
         
-     delx(count)=(1/U(count,count))*(W(count)-sum(U(count,counter)*delx(counter)));
+     delx(2*busnumber+tapnumber-count)=(1/U(2*busnumber+tapnumber-count,2*busnumber+tapnumber-count))*(W(2*busnumber+tapnumber-count,1)-sum(U(2*busnumber+tapnumber-count,2*busnumber+tapnumber-counter)*delx(2*busnumber+tapnumber-counter,1)));
                 
     end 
             
 end
-counter_f = 63
-while counter_f>0
-    
+
+x = x + delx;
+k = k+1;
+ma = max(delx);
+
+end
+disp(x)
