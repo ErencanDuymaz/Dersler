@@ -72,8 +72,8 @@ for count = 1:branchnumber
 end 
 
 theta = zeros(busnumber,1);
-W = zeros(2*busnumber+tapnumber-1,1)
-delx=zeros(2*busnumber+tapnumber-1,1)
+W = zeros(2*busnumber-1,1)
+delx=zeros(2*busnumber-1,1)
 
 z = zeros(measurementnumber,1);
 for count = 1:n_v+2*n_pi
@@ -704,18 +704,20 @@ t = H'*R*(z-h);
 for count = 1:size(L,1)
     for counter = 1:size(L,1)
         
-     W(count)=(1/L(count,count))*(t(count)-sum(L(count,counter)*W(counter,1)));
+     W(count)=(1/L(count,count))*(t(count)-sum(L(count,counter)*W(counter)));
                 
     end 
             
 end
-% Backward Substituion--> U delX = W
-for count = 1:2*busnumber+tapnumber-1
-    for counter = 1:2*busnumber+tapnumber-1
+%Backward Substituion--> U delX = W
+for count = 1:size(L,1)
+    for counter = 1:size(L,1)
         
-     delx(2*busnumber+tapnumber-count)=(1/U(2*busnumber+tapnumber-count,2*busnumber+tapnumber-count))*(W(2*busnumber+tapnumber-count,1)-sum(U(2*busnumber+tapnumber-count,2*busnumber+tapnumber-counter)*delx(2*busnumber+tapnumber-counter,1)));
+     delx(count)=(1/U(count,count))*(W(count)-sum(U(count,counter)*delx(counter)));
                 
     end 
             
 end
-
+counter_f = 63
+while counter_f>0
+    
