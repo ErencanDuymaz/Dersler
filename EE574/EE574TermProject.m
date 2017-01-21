@@ -107,9 +107,9 @@ ma = 5;
  k = 0;
 branchdata2 = branchdata; 
  
-while ma>Eps
-   
-%For considering tapping in the branches
+% while ma>Eps
+%    
+% %For considering tapping in the branches
 
 
 
@@ -732,9 +732,9 @@ for count = 1:2*busnumber+tapnumber-1
             
 end
 
-x = x + delx;
-k = k+1;
-ma = max(delx);
-
-end
-disp(x)
+% x = x + delx;
+% k = k+1;
+% ma = max(delx);
+% 
+% end
+% disp(x)
