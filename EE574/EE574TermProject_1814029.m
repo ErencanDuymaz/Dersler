@@ -102,10 +102,17 @@ predefinedvalue = 5;
  Eps = 10^(-3);
  k = 0;
 branchdata2 = branchdata; 
+<<<<<<< HEAD:EE574/EE574TermProject.m
+ 
+% while ma>Eps
+%    
+% %For considering tapping in the branches
+=======
  J = zeros(100,1);
 while predefinedvalue>Eps
    
 %For considering tapping in the branches
+>>>>>>> a756787733265e2028ba5c9272e0df8a7fef38c8:EE574/EE574TermProject_1814029.m
 
 %Objective function in order to understand the behaviour of the code
 
@@ -774,6 +781,14 @@ for count = 1:2*busnumber+tapnumber-1
             
 end
 
+<<<<<<< HEAD:EE574/EE574TermProject.m
+% x = x + delx;
+% k = k+1;
+% ma = max(delx);
+% 
+% end
+% disp(x)
+=======
 x = x + delx;
 k = k+1;
 predefinedvalue = max(delx);
@@ -781,3 +796,4 @@ predefinedvalue = max(delx);
 end
 disp(x)
 disp(k)
+>>>>>>> a756787733265e2028ba5c9272e0df8a7fef38c8:EE574/EE574TermProject_1814029.m
