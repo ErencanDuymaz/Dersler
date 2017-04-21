@@ -1,0 +1,175 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>hw2</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-04-20"><meta name="DC.source" content="hw2.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput">clear <span class="string">all</span>
+clc
+<span class="comment">%Solution of Question 1</span>
+<span class="comment">%Givens:</span>
+<span class="comment">%F1(P1)=2200+25*P1+0.025*P1^2</span>
+<span class="comment">%F2(P2)=1500+11*P2+0.02*P2^2</span>
+<span class="comment">%Ploss=0.0002*P1^2+0.0001*P2^2</span>
+<span class="comment">%Constraints:</span>
+
+<span class="comment">%Pload+Ploss-(P1+P2)=phi=0</span>
+<span class="comment">%220&lt;=P1=&gt;600</span>
+<span class="comment">%350&lt;=P2=&gt;800</span>
+<span class="comment">%Ploss=0.0002*P1^2+0.0001*P2^2</span>
+
+<span class="comment">%We need to perform economic dispatch for a load of 1000 MW starting from</span>
+<span class="comment">%P1=500 MW &amp; P2=500 MW</span>
+
+P_1=500;
+P_2=500;
+Pload=1000;
+<span class="comment">%What we need to utilize is:</span>
+<span class="comment">% delFi/delPi = lambda*(1-delPloss/delPi)</span>
+
+<span class="keyword">for</span> k = 1:50
+
+<span class="comment">%Calculate the loss:</span>
+Ploss = 0.0002*P_1^2+0.0001*P_2^2;
+
+delPloss_delP1=0.0004*P_1;
+delPloss_delP2=0.0002*P_2;
+
+<span class="comment">%Solve linear derivative equations by using matrices (Ax=B and x = A-1*B) and found P1,P2 and Lambda</span>
+sol =  inv([0.05 , 0 , (delPloss_delP1-1) ; 0, 0.04 , (delPloss_delP2-1); 1 , 1, 0 ]) *[ -25 ; -11 ; Pload+Ploss ];
+
+<span class="comment">%Update the P1 and P2</span>
+<span class="keyword">if</span> abs(P_1 -sol(1,1))&lt;1
+   P_1= sol(1,1);
+   P_2=sol(2,1);
+   Lambda = sol(3,1);
+   <span class="keyword">break</span>;
+<span class="keyword">end</span>
+P_1= sol(1,1);
+P_2=sol(2,1);
+Lambda = sol(3,1);
+<span class="keyword">end</span>
+FT1= 2200+25*P_1+0.025*P_1^2;
+FT2=1500+11*P_2+0.02*P_2^2;
+formatSpec = <span class="string">'Incremental Losses:%4.2f and %4.2f \nTotal Loss:%4.2f MW \nP1 and P2:%4.2f MW,%4.2f MW\n...Total Cost of P1:%4.2f $/MWh\nTotal Cost of P2:%4.2f $/MWh'</span>;
+fprintf(formatSpec,delPloss_delP1,delPloss_delP2,Ploss,P_1,P_2,FT1,FT2)
+</pre><pre class="codeoutput">Incremental Losses:0.13 and 0.15 
+Total Loss:77.65 MW 
+P1 and P2:332.29 MW,745.36 MW
+...Total Cost of P1:13267.66 $/MWh
+Total Cost of P2:20810.22 $/MWh</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+clear all
+clc
+%Solution of Question 1
+%Givens:
+%F1(P1)=2200+25*P1+0.025*P1^2
+%F2(P2)=1500+11*P2+0.02*P2^2
+%Ploss=0.0002*P1^2+0.0001*P2^2
+%Constraints:
+
+%Pload+Ploss-(P1+P2)=phi=0
+%220<=P1=>600
+%350<=P2=>800
+%Ploss=0.0002*P1^2+0.0001*P2^2 
+
+%We need to perform economic dispatch for a load of 1000 MW starting from
+%P1=500 MW & P2=500 MW 
+
+P_1=500;
+P_2=500;
+Pload=1000;
+%What we need to utilize is:
+% delFi/delPi = lambda*(1-delPloss/delPi)
+
+for k = 1:50
+    
+%Calculate the loss:
+Ploss = 0.0002*P_1^2+0.0001*P_2^2;
+
+delPloss_delP1=0.0004*P_1;
+delPloss_delP2=0.0002*P_2;
+
+%Solve linear derivative equations by using matrices (Ax=B and x = A-1*B) and found P1,P2 and Lambda 
+sol =  inv([0.05 , 0 , (delPloss_delP1-1) ; 0, 0.04 , (delPloss_delP2-1); 1 , 1, 0 ]) *[ -25 ; -11 ; Pload+Ploss ];
+
+%Update the P1 and P2
+if abs(P_1 -sol(1,1))<1
+   P_1= sol(1,1);
+   P_2=sol(2,1);
+   Lambda = sol(3,1);
+   break;
+end 
+P_1= sol(1,1);
+P_2=sol(2,1);
+Lambda = sol(3,1);
+end 
+FT1= 2200+25*P_1+0.025*P_1^2;
+FT2=1500+11*P_2+0.02*P_2^2;
+formatSpec = 'Incremental Losses:%4.2f and %4.2f \nTotal Loss:%4.2f MW \nP1 and P2:%4.2f MW,%4.2f MW\n...Total Cost of P1:%4.2f $/MWh\nTotal Cost of P2:%4.2f $/MWh';
+fprintf(formatSpec,delPloss_delP1,delPloss_delP2,Ploss,P_1,P_2,FT1,FT2)
+
+
+##### SOURCE END #####
+--></body></html>
